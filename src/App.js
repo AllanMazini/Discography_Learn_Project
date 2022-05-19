@@ -7,7 +7,10 @@ class Discography extends Component {
   constructor(props){
     super(props);
 
-    this.state = {data : [] };
+    this.state = { data: [], filter: null };
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   };
 
   componentDidMount(){
@@ -23,21 +26,54 @@ class Discography extends Component {
       });
 
   }
+//Formulario de pesquisa
+  handleChange(event) {
+    const filter = event.target.value;
+    this.setState({ filter });
+  }
 
+  handleSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+
+    const data = Object.fromEntries(formData);
+
+    this.setState({ filter: data.q });
+  }
+
+  applyFilter(data, filter) {
+    if (!filter) return data;
+    const lowerFilter = filter.toLowerCase();
+
+    return data.filter(item => {
+      const lowerTitle = item.title.toLowerCase();
+      return lowerTitle.indexOf(lowerFilter) !== -1;
+    });
+  }
   render(){
-    const {data} = this.state;
+    const { data, filter } = this.state;
 
-    if (!data || !data.length) {return (<h2>Loding ...</h2>)}
-    return(
+    if (!data || !data.length) return (<h2>Loading...</h2>);
+
+    const filteredData = this.applyFilter(data, filter);
+
+    return (
       <div>
         <h2>Discography</h2>
-        <div className='discography'>
-        {/* USANDO CHAVE COMPOSTA - | cria uma "const key = `${index} - ${album.title}`"  */}
-        {data.map(album => <Album key={album.title} item={album}/> )}
+        <div className="search">
+          <form onSubmit={this.handleSubmit}>
+            <input type="text" name="q" className="input" autoComplete="off" onChange={this.handleChange} />
+            <input type="submit" className="btn" value="Search" />
+          </form>
         </div>
-      </div>)
+
+        <div className="discography">
+          {filteredData.map(album => <Album key={album.title} item={album} />)}
+        </div>
+      </div>
+    )
+    }
   }
-}
 
 export default Discography;
 
